@@ -479,6 +479,12 @@ export default function Home() {
       ? { display: 'flex', flexDirection: 'column' as const, gap: '1rem', height: '100%' }
       : { display: 'flex', flexDirection: 'row' as const, gap: '1rem', height: '100%' };
     
+    // Log the layout group structure to understand ordering
+    console.log(`Rendering layout group ${groupIndex}, orientation: ${isVertical ? 'vertical' : 'horizontal'}`);
+    if (group.LayoutItem && Array.isArray(group.LayoutItem)) {
+      console.log(`Layout items:`, group.LayoutItem.map(item => item.$ && item.$.DashboardItem));
+    }
+    
     // Calculate weight percentages
     const totalWeight = (() => {
       let weight = 0;
@@ -502,14 +508,37 @@ export default function Home() {
       return weight > 0 ? weight : 100;
     })();
     
-    // Render layout items
+    // Preserve the ordering as defined in the XML by collecting all items first
     const items: ReactElement[] = [];
     
+    // Render nested layout groups first if this is a vertical layout
+    // This ensures that in vertical layouts, groups appear before individual items
+    if (isVertical && group.LayoutGroup && Array.isArray(group.LayoutGroup)) {
+      group.LayoutGroup.forEach((childGroup, childIndex) => {
+        const weight = parseFloat(childGroup.$?.Weight || '0');
+        const flexBasis = `${(weight / totalWeight) * 100}%`;
+        
+        items.push(
+          <div 
+            key={`group-${groupIndex}-${childIndex}`} 
+            style={{ flex: `0 0 ${flexBasis}` }}
+            className="h-full"
+          >
+            {renderLayoutGroup(childGroup, childIndex)}
+          </div>
+        );
+      });
+    }
+    
+    // Render layout items
     if (group.LayoutItem && Array.isArray(group.LayoutItem)) {
       group.LayoutItem.forEach((item, itemIndex) => {
         if (item.$ && item.$.DashboardItem) {
           const weight = parseFloat(item.$.Weight || '0');
           const flexBasis = `${(weight / totalWeight) * 100}%`;
+          
+          // Log the component being created to track ordering
+          console.log(`Creating component: ${item.$.DashboardItem}`);
           
           const component = createComponent(item.$.DashboardItem);
           if (component) {
@@ -527,8 +556,8 @@ export default function Home() {
       });
     }
     
-    // Render nested layout groups
-    if (group.LayoutGroup && Array.isArray(group.LayoutGroup)) {
+    // For horizontal layouts or if we haven't rendered the groups yet, add them now
+    if (!isVertical && group.LayoutGroup && Array.isArray(group.LayoutGroup)) {
       group.LayoutGroup.forEach((childGroup, childIndex) => {
         const weight = parseFloat(childGroup.$?.Weight || '0');
         const flexBasis = `${(weight / totalWeight) * 100}%`;
@@ -575,8 +604,6 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Financial Dashboard</h1>
-      
       <div className="dashboard-container" style={{ height: '850px' }}>
         {renderDashboard()}
       </div>
