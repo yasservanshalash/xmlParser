@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactElement } from "react";
 // Import DevExtreme components
 import { Chart, Series, Legend, ValueAxis, Export, Title } from 'devextreme-react/chart';
 import { PieChart, Series as PieSeries } from 'devextreme-react/pie-chart';
@@ -193,7 +193,7 @@ export default function Home() {
     
     console.log("Rendering dashboard with configuration from XML and data from data.json");
     
-    const chartElements: JSX.Element[] = [];
+    const chartElements: ReactElement[] = [];
     
     // Process Chart type
     if (dashboardData.Chart && Array.isArray(dashboardData.Chart)) {
