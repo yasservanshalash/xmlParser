@@ -1,0 +1,125 @@
+<Dashboard CurrencyCulture="en-GB">
+  <Title Text="Over All Reveneue Analysis" />
+  <DataSources>
+    <SqlDataSource Name="SQL Data Source 1" ComponentName="dashboardSqlDataSource1">
+      <Connection Name="localhost_CEBSuite_Connection" ProviderKey="MSSqlServer">
+        <Parameters>
+          <Parameter Name="server" Value="192.168.10.63" />
+          <Parameter Name="database" Value="CEBSuite" />
+          <Parameter Name="useIntegratedSecurity" Value="False" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="generateConnectionHelper" Value="false" />
+          <Parameter Name="userid" Value="" />
+          <Parameter Name="password" Value="" />
+        </Parameters>
+      </Connection>
+      <Query Type="StoredProcQuery" Name="usp_dsbRevenueAnalysis">
+        <Parameter Name="@p_Yr" Type="System.Int32">3</Parameter>
+        <Parameter Name="@p_CompGroupId" Type="System.String" />
+        <ProcName>usp_dsbRevenueAnalysis</ProcName>
+      </Query>
+      <ResultSchema>
+        <DataSet Name="SQL Data Source 1">
+          <View Name="usp_dsbRevenueAnalysis">
+            <Field Name="CompGroupId" Type="String" />
+            <Field Name="DocDt" Type="DateTime" />
+            <Field Name="GLCode" Type="String" />
+            <Field Name="ACCCompId" Type="String" />
+            <Field Name="Amount" Type="Decimal" />
+          </View>
+        </DataSet>
+      </ResultSchema>
+      <ConnectionOptions CloseConnection="true" />
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <Chart ComponentName="chartDashboardItem1" Name="Periodic Revenue" DataSource="dashboardSqlDataSource1" DataMember="usp_dsbRevenueAnalysis">
+      <DataItems>
+        <Measure DataMember="Amount" Name="Amount" DefaultId="DataItem0" />
+        <Dimension DataMember="DocDt" Name="Month" DateTimeGroupInterval="Month" DefaultId="DataItem1" />
+        <Dimension DataMember="DocDt" Name="Year" DefaultId="DataItem2" />
+      </DataItems>
+      <SeriesDimensions>
+        <SeriesDimension DefaultId="DataItem2" />
+      </SeriesDimensions>
+      <Arguments>
+        <Argument DefaultId="DataItem1" />
+      </Arguments>
+      <Panes>
+        <Pane Name="Pane 1">
+          <Series>
+            <Simple SeriesType="Spline">
+              <Value DefaultId="DataItem0" />
+            </Simple>
+          </Series>
+        </Pane>
+      </Panes>
+    </Chart>
+    <Pie ComponentName="pieDashboardItem1" Name="Revenue By Year Division" DataSource="dashboardSqlDataSource1" DataMember="usp_dsbRevenueAnalysis">
+      <DataItems>
+        <Measure DataMember="Amount" DefaultId="DataItem0" />
+        <Dimension DataMember="CompGroupId" DefaultId="DataItem1" />
+        <Dimension DataMember="DocDt" DefaultId="DataItem2" />
+      </DataItems>
+      <SeriesDimensions>
+        <SeriesDimension DefaultId="DataItem2" />
+      </SeriesDimensions>
+      <Arguments>
+        <Argument DefaultId="DataItem1" />
+      </Arguments>
+      <Values>
+        <Value DefaultId="DataItem0" />
+      </Values>
+    </Pie>
+    <Pivot ComponentName="pivotDashboardItem1" Name="Revenue By Year Division Data" DataSource="dashboardSqlDataSource1" DataMember="usp_dsbRevenueAnalysis">
+      <DataItems>
+        <Measure DataMember="Amount" DefaultId="DataItem0">
+          <NumericFormat FormatType="Number" CustomFormatString="" />
+        </Measure>
+        <Dimension DataMember="DocDt" DefaultId="DataItem1" />
+        <Dimension DataMember="CompGroupId" DefaultId="DataItem2" />
+      </DataItems>
+      <Columns>
+        <Column DefaultId="DataItem1" />
+      </Columns>
+      <Rows>
+        <Row DefaultId="DataItem2" />
+      </Rows>
+      <Values>
+        <Value DefaultId="DataItem0" />
+      </Values>
+    </Pivot>
+    <Chart ComponentName="chartDashboardItem2" Name="Revenue By Year Division" DataSource="dashboardSqlDataSource1" DataMember="usp_dsbRevenueAnalysis">
+      <DataItems>
+        <Measure DataMember="Amount" Name="Amount" DefaultId="DataItem0" />
+        <Dimension DataMember="CompGroupId" DefaultId="DataItem1" />
+        <Dimension DataMember="DocDt" Name="Year" DefaultId="DataItem2" />
+      </DataItems>
+      <SeriesDimensions>
+        <SeriesDimension DefaultId="DataItem1" />
+      </SeriesDimensions>
+      <Arguments>
+        <Argument DefaultId="DataItem2" />
+      </Arguments>
+      <Panes>
+        <Pane Name="Pane 1">
+          <Series>
+            <Simple>
+              <Value DefaultId="DataItem0" />
+            </Simple>
+          </Series>
+        </Pane>
+      </Panes>
+    </Chart>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup Orientation="Vertical" Weight="100">
+      <LayoutGroup Weight="49.932523616734144">
+        <LayoutItem DashboardItem="pieDashboardItem1" Weight="28.170894526034711" />
+        <LayoutItem DashboardItem="chartDashboardItem2" Weight="30.640854472630174" />
+        <LayoutItem DashboardItem="pivotDashboardItem1" Weight="41.188251001335111" />
+      </LayoutGroup>
+      <LayoutItem DashboardItem="chartDashboardItem1" Weight="50.067476383265856" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>

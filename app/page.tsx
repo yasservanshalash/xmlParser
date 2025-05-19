@@ -8,6 +8,9 @@ import PivotGridDataSource from 'devextreme/ui/pivot_grid/data_source';
 import 'devextreme/dist/css/dx.light.css';
 import FinancialData from "@/public/data.json";
 
+// Import types from DevExtreme
+import { SeriesType } from 'devextreme/viz/chart';
+
 // Define type for financial data items
 type FinancialRecord = {
   CompGroupId: string;
@@ -27,6 +30,17 @@ type ChartConfig = {
     [key: string]: unknown;
   };
   data?: unknown[];
+  Panes?: {
+    Pane?: {
+      $?: { Name?: string };
+      Series?: {
+        Simple?: {
+          $?: { SeriesType?: string };
+          Value?: unknown[];
+        }[];
+      }[];
+    }[];
+  }[];
   [key: string]: unknown;
 };
 
@@ -185,6 +199,57 @@ export default function Home() {
       });
   }, []);
 
+  // Function to extract series type from chart configuration
+  const getSeriesType = (chart: ChartConfig): SeriesType => {
+    console.log("Chart configuration:", chart);
+    
+    try {
+      // Try to extract series type from the Panes structure
+      if (chart.Panes && 
+          Array.isArray(chart.Panes) && 
+          chart.Panes[0] && 
+          chart.Panes[0].Pane && 
+          Array.isArray(chart.Panes[0].Pane) && 
+          chart.Panes[0].Pane[0] && 
+          chart.Panes[0].Pane[0].Series && 
+          Array.isArray(chart.Panes[0].Pane[0].Series) && 
+          chart.Panes[0].Pane[0].Series[0] && 
+          chart.Panes[0].Pane[0].Series[0].Simple && 
+          Array.isArray(chart.Panes[0].Pane[0].Series[0].Simple) && 
+          chart.Panes[0].Pane[0].Series[0].Simple[0] && 
+          chart.Panes[0].Pane[0].Series[0].Simple[0].$ && 
+          chart.Panes[0].Pane[0].Series[0].Simple[0].$.SeriesType) {
+        
+        const seriesType = chart.Panes[0].Pane[0].Series[0].Simple[0].$.SeriesType.toLowerCase();
+        console.log("Found series type in configuration:", seriesType);
+        
+        // Map the XML series type to a valid DevExtreme series type
+        switch (seriesType) {
+          case 'spline':
+            return 'spline';
+          case 'line':
+            return 'line';
+          case 'bar':
+            return 'bar';
+          case 'area':
+            return 'area';
+          case 'stackedbar':
+            return 'stackedbar';
+          case 'fullstackedbar':
+            return 'fullstackedbar';
+          default:
+            return 'bar';
+        }
+      }
+    } catch (error) {
+      console.error("Error extracting series type:", error);
+    }
+    
+    // If we can't find the series type or there's an error, use a default
+    return chart.$ && chart.$.Type ? 
+      (chart.$.Type.toLowerCase() === 'spline' ? 'spline' : 'bar') : 'bar';
+  };
+
   // Function to render charts based on their type
   const renderCharts = () => {
     if (loading) return <div className="p-4">Loading charts...</div>;
@@ -202,6 +267,9 @@ export default function Home() {
       dashboardData.Chart.forEach((chart, index) => {
         const chartConfig = chart.$ || {};
         let chartData;
+        
+        // Get series type from configuration
+        const seriesType = getSeriesType(chart);
         
         // Use the appropriate data for this chart based on its name or other attributes
         if (chartConfig.Name?.includes("Revenue By Year Division")) {
@@ -236,7 +304,7 @@ export default function Home() {
               <Series
                 valueField="value"
                 argumentField="argument"
-                type="bar"
+                type={seriesType}
                 name={chartConfig.Name || 'Data Series'}
               />
               <ValueAxis title={{ text: chartConfig.ValueAxisTitle || 'Amount' }} />
